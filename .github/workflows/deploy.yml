@@ -19,7 +19,11 @@ jobs:
 
       # Install dependencies
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci
+          cd infrastructure
+          npm ci
+          cd ..
 
       # Build the application
       - name: Build
