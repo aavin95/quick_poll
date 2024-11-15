@@ -6,29 +6,63 @@ import { UpdateCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 
 export async function POST(req: Request) {
   try {
-    const { pollId, option } = await req.json();
+    const { pollId, option, name } = await req.json();
 
-    console.log("pollId", pollId);
-    console.log("option", option);
-
-    // Step 1: Decrement the vote count for the selected option
-    const updateCommand = new UpdateCommand({
+    // Step 1: Decrement the vote count and remove the name
+    const decrementCommand = new UpdateCommand({
       TableName: "quick_poll",
       Key: { pollId },
-      UpdateExpression: "ADD #options.#option :dec",
+      UpdateExpression: "ADD #options.#option :dec DELETE #names :nameSet",
       ExpressionAttributeNames: {
         "#options": "options",
         "#option": option,
+        "#names": "names",
       },
       ExpressionAttributeValues: {
         ":dec": -1,
+        ":nameSet": new Set([name]),
       },
       ReturnValues: "UPDATED_NEW",
     });
 
-    await dynamoDb.send(updateCommand);
+    await dynamoDb.send(decrementCommand);
 
-    // Step 2: Retrieve the updated poll item
+    // Step 2: Check conditions for deletion and remove field if conditions are met
+    const deleteConditionCommand = new UpdateCommand({
+      TableName: "quick_poll",
+      Key: { pollId },
+      UpdateExpression: "REMOVE #options.#option",
+      ConditionExpression:
+        "attribute_exists(#options.#option) AND #options.#option = :zero AND #prefs.#freeResp = :true",
+      ExpressionAttributeNames: {
+        "#options": "options",
+        "#option": option,
+        "#prefs": "advancedPreferences",
+        "#freeResp": "freeResponse",
+      },
+      ExpressionAttributeValues: {
+        ":zero": 0,
+        ":true": true,
+      },
+      ReturnValues: "UPDATED_NEW",
+    });
+
+    try {
+      await dynamoDb.send(deleteConditionCommand);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.name === "ConditionalCheckFailedException"
+      ) {
+        console.log(
+          "Conditions not met for field deletion; vote updated only."
+        );
+      } else {
+        throw error; // Re-throw other errors
+      }
+    }
+
+    // Step 3: Retrieve the updated poll item
     const getCommand = new GetCommand({
       TableName: "quick_poll",
       Key: { pollId },
@@ -43,8 +77,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // Step 3: Send the updated poll data back to the client
-    return NextResponse.json(getResponse.Item, { status: 200 });
+    const responseItem = {
+      ...getResponse.Item,
+      names: getResponse.Item.names ? Array.from(getResponse.Item.names) : [],
+    };
+
+    // Step 4: Send the updated poll data back to the client
+    return NextResponse.json(responseItem, { status: 200 });
   } catch (error) {
     console.error("Error updating vote:", error);
     return NextResponse.json(

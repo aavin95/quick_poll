@@ -290,8 +290,6 @@ export default function PollPage({
   const [showNames, setShowNames] = useState<boolean>(false);
 
   useEffect(() => {
-    setHasVoted(localStorage.getItem("hasVoted") === "true");
-    setOptionVotedName(localStorage.getItem("optionVotedName") || "");
     const fetchPollData = async () => {
       const response = await fetch(`/api/poll?pollId=${pollID}`);
       const data = await response.json();
@@ -300,12 +298,18 @@ export default function PollPage({
           name,
           value: Number(value),
         }));
-        setPollData({ question: data.question, options, names: data.names });
+        setPollData({
+          question: data.question,
+          options,
+          names: data.names,
+        });
         setAdvancedPreferences(data.advancedPreferences);
       } else {
         console.error(data.error);
       }
     };
+    setHasVoted(localStorage.getItem(`hasVoted-${pollID}`) === "true");
+    setOptionVotedName(localStorage.getItem(`optionVotedName-${pollID}`) || "");
     setHasMounted(true);
     fetchPollData();
   }, [pollID]);
@@ -327,6 +331,10 @@ export default function PollPage({
       console.log("updatedData", updatedData);
       setHasVoted(true);
       localStorage.setItem(`hasVoted-${pollID}`, "true");
+      console.log(
+        "localStorage.getItem(`hasVoted-${pollID}`)",
+        localStorage.getItem(`hasVoted-${pollID}`)
+      );
       setOptionVotedName(optionName);
       localStorage.setItem(`optionVotedName-${pollID}`, optionName);
       const options = Object.entries(updatedData.options).map(
@@ -350,10 +358,16 @@ export default function PollPage({
     if (advancedPreferences.allowMultipleVotes) {
       return;
     }
+    console.log("option", optionVotedName);
     const response = await fetch(`/api/undoVote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pollId: pollID, option: optionVotedName, name }),
+      body: JSON.stringify({
+        pollId: pollID,
+        option: optionVotedName,
+        name,
+        isFreeResponse: advancedPreferences.freeResponse,
+      }),
     });
     if (response.ok) {
       const updatedData = await response.json();
@@ -368,8 +382,9 @@ export default function PollPage({
           value: Number(value),
         })
       );
+      console.log("updatedData", updatedData);
       setPollData({
-        question: updatedData.question.S,
+        question: updatedData.question,
         options,
         names: updatedData.names,
       });
@@ -619,18 +634,6 @@ export default function PollPage({
               ) : (
                 <Text>No votes have been cast yet. Be the first to vote!</Text>
               )}
-              <ButtonContainer2>
-                {hasVoted && !advancedPreferences.allowMultipleVotes && (
-                  <UndoVoteButton onClick={handleUndoVote}>
-                    Undo Vote
-                  </UndoVoteButton>
-                )}
-                <GearButton
-                  onClick={() => setShowGraphOptions(!showGraphOptions)}
-                >
-                  <FaCog size={24} />
-                </GearButton>
-              </ButtonContainer2>
             </div>
 
             {advancedPreferences.requireNames && (
@@ -638,6 +641,20 @@ export default function PollPage({
                 {showNames ? "Hide Names" : "View Names"}
               </ViewNamesButton>
             )}
+          </div>
+          <div>
+            <ButtonContainer2>
+              {hasVoted && !advancedPreferences.allowMultipleVotes && (
+                <UndoVoteButton onClick={handleUndoVote}>
+                  Undo Vote
+                </UndoVoteButton>
+              )}
+              <GearButton
+                onClick={() => setShowGraphOptions(!showGraphOptions)}
+              >
+                <FaCog size={24} />
+              </GearButton>
+            </ButtonContainer2>
           </div>
         </Card>
         {showNames && pollData.names && pollData.names.length > 0 && (
