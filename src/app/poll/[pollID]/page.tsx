@@ -293,6 +293,7 @@ export default function PollPage({
     const fetchPollData = async () => {
       const response = await fetch(`/api/poll?pollId=${pollID}`);
       const data = await response.json();
+      console.log("data", data);
       if (response.ok) {
         const options = Object.entries(data.options).map(([name, value]) => ({
           name,
@@ -345,7 +346,7 @@ export default function PollPage({
       );
       console.log("updatedData.names", updatedData.names);
       setPollData({
-        question: updatedData.question.S,
+        question: updatedData.question,
         options,
         names: updatedData.names,
       });
@@ -407,7 +408,6 @@ export default function PollPage({
             <Title>Cast Your Vote</Title>
             {pollData && (
               <>
-                <Question>{pollData.question}</Question>
                 {advancedPreferences.requireNames && (
                   <>
                     <Text>Please enter your name to vote.</Text>
@@ -452,6 +452,7 @@ export default function PollPage({
 
         {/* Results Container on the right */}
         <Card>
+          <Question>{pollData.question}</Question>
           <div style={{ display: "flex", alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
               <Title>Results</Title>
