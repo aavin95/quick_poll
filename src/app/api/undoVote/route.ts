@@ -13,6 +13,7 @@ export async function POST(req: Request) {
       TableName: "quick_poll",
       Key: { pollId },
       UpdateExpression: "ADD #options.#option :dec DELETE #names :nameSet",
+      ConditionExpression: "#options.#option > :zero",
       ExpressionAttributeNames: {
         "#options": "options",
         "#option": option,
@@ -21,11 +22,25 @@ export async function POST(req: Request) {
       ExpressionAttributeValues: {
         ":dec": -1,
         ":nameSet": new Set([name]),
+        ":zero": 0,
       },
       ReturnValues: "UPDATED_NEW",
     });
 
-    await dynamoDb.send(decrementCommand);
+    try {
+      await dynamoDb.send(decrementCommand);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.name === "ConditionalCheckFailedException"
+      ) {
+        return NextResponse.json(
+          { error: "Vote count cannot go below 0" },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
 
     // Step 2: Check conditions for deletion and remove field if conditions are met
     const deleteConditionCommand = new UpdateCommand({

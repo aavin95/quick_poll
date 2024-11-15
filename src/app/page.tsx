@@ -1,8 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import styled from "styled-components";
-import Link from "next/link";
-import Head from "next/head";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { FaCog, FaTimes } from "react-icons/fa"; // Import gear icon from react-icons
@@ -283,12 +281,6 @@ export default function Home() {
 
   return (
     <>
-      <Head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
-          rel="stylesheet"
-        />
-      </Head>
       <Toaster />
       <Container>
         <Card>
