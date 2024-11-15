@@ -1,5 +1,5 @@
 "use client";
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Cell,
   Tooltip,
@@ -263,13 +263,9 @@ const NamesContainer = styled.div`
   }
 `;
 
-export default function PollPage({
-  params,
-}: {
-  params: Promise<{ pollID: string }>;
-}) {
+export default function PollPage({ params }: { params: { pollID: string } }) {
   const [hasMounted, setHasMounted] = useState(false);
-  const { pollID } = use(params);
+  const { pollID } = params;
   const [pollData, setPollData] = useState<PollData>({
     question: "",
     options: [],
@@ -293,7 +289,6 @@ export default function PollPage({
     const fetchPollData = async () => {
       const response = await fetch(`/api/poll?pollId=${pollID}`);
       const data = await response.json();
-      console.log("data", data);
       if (response.ok) {
         const options = Object.entries(data.options).map(([name, value]) => ({
           name,
@@ -318,7 +313,6 @@ export default function PollPage({
   useEffect(() => {}, [pollData]); // Here to get rid of a linting error in the useEffect hook above
 
   const handleVote = async (optionName: string) => {
-    console.log("name", name);
     const response = await fetch(`/api/vote`, {
       method: "POST",
       headers: {
@@ -329,13 +323,8 @@ export default function PollPage({
 
     if (response.ok) {
       const updatedData = await response.json();
-      console.log("updatedData", updatedData);
       setHasVoted(true);
       localStorage.setItem(`hasVoted-${pollID}`, "true");
-      console.log(
-        "localStorage.getItem(`hasVoted-${pollID}`)",
-        localStorage.getItem(`hasVoted-${pollID}`)
-      );
       setOptionVotedName(optionName);
       localStorage.setItem(`optionVotedName-${pollID}`, optionName);
       const options = Object.entries(updatedData.options).map(
@@ -344,7 +333,6 @@ export default function PollPage({
           value: Number(value),
         })
       );
-      console.log("updatedData.names", updatedData.names);
       setPollData({
         question: updatedData.question,
         options,
@@ -359,7 +347,6 @@ export default function PollPage({
     if (advancedPreferences.allowMultipleVotes) {
       return;
     }
-    console.log("option", optionVotedName);
     const response = await fetch(`/api/undoVote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -383,7 +370,6 @@ export default function PollPage({
           value: Number(value),
         })
       );
-      console.log("updatedData", updatedData);
       setPollData({
         question: updatedData.question,
         options,

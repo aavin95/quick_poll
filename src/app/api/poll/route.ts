@@ -6,11 +6,6 @@ import { v4 as uuidv4 } from "uuid";
 export async function POST(req: Request) {
   const { question, options, advancedPreferences } = await req.json();
 
-  // Validate inputs
-  console.log(options);
-  console.log(question);
-  console.log(advancedPreferences);
-
   switch (true) {
     case !question:
       return NextResponse.json(
@@ -53,7 +48,6 @@ export async function POST(req: Request) {
   }
 
   // Create a map for options with initial votes set to 0
-  console.log(options);
 
   const pollId = uuidv4();
   const params = {
