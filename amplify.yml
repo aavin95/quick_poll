@@ -5,17 +5,13 @@ applications:
         preBuild:
           commands:
             - npm ci
-            - cd infrastructure && npm ci
         build:
           commands:
             - npm run build
-            - cd infrastructure && npm run build
       artifacts:
         baseDirectory: .next
         files:
           - "**/*"
       cache:
         paths:
-          - node_modules/**/* # Cache for root dependencies
-          - infrastructure/node_modules/**/* # Cache for infrastructure dependencies
-
+          - node_modules/**/*
