@@ -12,6 +12,8 @@ applications:
             - cd infrastructure && npm run build
       artifacts:
         baseDirectory: .next
+        files:
+          - "**/*"
       cache:
         paths:
           - node_modules/**/* # Cache for root dependencies
