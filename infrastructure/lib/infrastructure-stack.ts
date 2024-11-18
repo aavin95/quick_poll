@@ -4,6 +4,8 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
+import * as source from "aws-cdk-lib/aws-s3-deployment";
+import { Duration } from "aws-cdk-lib";
 
 export class InfrastructureStack extends cdk.Stack {
   public readonly table: dynamodb.Table;
@@ -43,9 +45,9 @@ export class InfrastructureStack extends cdk.Stack {
 
     // Deploy website contents to S3
     new s3deploy.BucketDeployment(this, "DeployWebsite", {
-      sources: [s3deploy.Source.asset("../.next")],
+      sources: [source.Source.asset("../website/build")],
       destinationBucket: websiteBucket,
-      distribution,
+      memoryLimit: 1024,
     });
 
     // Output the CloudFront URL

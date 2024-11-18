@@ -26,8 +26,15 @@ jobs:
           cd ..
 
       # Build the application
-      - name: Build
+      - name: Build root
         run: npm run build
+
+      - name: Build infrastructure
+        run: |
+          cd infrastructure
+          npm ci
+          npm run build
+          cd ..
 
       # Configure AWS credentials
       - name: Configure AWS credentials
