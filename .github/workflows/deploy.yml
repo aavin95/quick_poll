@@ -21,20 +21,10 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci
-          cd infrastructure
-          npm ci
-          cd ..
 
       # Build the application
       - name: Build root
         run: npm run build
-
-      - name: Build infrastructure
-        run: |
-          cd infrastructure
-          npm ci
-          npm run build
-          cd ..
 
       # Configure AWS credentials
       - name: Configure AWS credentials
@@ -43,10 +33,3 @@ jobs:
           aws-access-key-id: ${{ secrets.NEXT_PUBLIC_CLOUD_KEY_ID }}
           aws-secret-access-key: ${{ secrets.NEXT_PUBLIC_CLOUD_ACCESS_KEY }}
           aws-region: us-east-2
-
-      # Deploy infrastructure using AWS CDK
-      - name: Deploy infrastructure
-        run: |
-          cd infrastructure
-          npm ci
-          npm run cdk deploy -- --require-approval never
