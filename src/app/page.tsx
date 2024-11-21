@@ -9,9 +9,14 @@ const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column; // Default to column for mobile
   min-height: 100vh;
-  padding: 2em 1em; // Responsive padding for smaller screens
-  gap: 20px; // Add gap between cards
+  padding: 2em 1em;
+  gap: 20px;
+
+  @media (min-width: 768px) {
+    flex-direction: row; // Change to row for larger screens
+  }
 `;
 
 const Text = styled.p`
@@ -191,6 +196,7 @@ const FeatureCheckbox = styled.div`
 
 export default function Home() {
   const [hasMounted, setHasMounted] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [question, setQuestion] = useState("");
   const [optionFields, setOptionFields] = useState<string[]>(["", ""]);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -256,6 +262,7 @@ export default function Home() {
       setShowPostCreationOptions(true);
       setCreatedPollId(data.pollId);
       localStorage.setItem("pollId", data.pollId);
+      setHasSubmitted(true);
     } else {
       const errorMessage = data.error || "An unknown error occurred";
       toast.error(`Error creating poll: ${errorMessage}`);
@@ -364,7 +371,7 @@ export default function Home() {
           )}
         </Card>
 
-        {showAdvanced && (
+        {showAdvanced && !hasSubmitted && (
           <Card>
             <AdvancedContainer>
               <AdvancedContainerTitle>Advanced Features</AdvancedContainerTitle>

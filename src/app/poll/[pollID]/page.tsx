@@ -37,11 +37,15 @@ const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: row;
+  flex-direction: column;
   min-height: 100vh;
   background-color: #f5f7fa;
   padding: 20px;
   gap: 20px;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+  }
 `;
 
 const Card = styled.div`
@@ -107,7 +111,7 @@ const VoteButton = styled.button`
 `;
 
 const FreeResponseInput = styled.input`
-  width: 100%;
+  width: calc(100% - 24px);
   padding: 12px;
   margin-top: 10px;
   font-size: 16px;
